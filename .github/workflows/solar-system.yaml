@@ -65,6 +65,8 @@ jobs:
 
     - name: Docker build and push 
       id: build-and-push
+      env: 
+        ECR_REGISTRY: ${{steps.login-ecr.outputs.registry}}
       run: | 
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
         docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY/nginx:$CUSTOM_TAG
