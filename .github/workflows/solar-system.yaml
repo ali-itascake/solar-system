@@ -88,14 +88,20 @@ jobs:
       with:
        method: kubeconfig
        kubeconfig: ${{ secrets.KUBE_CONFIG}}  
+    - name: Checkout the repository
+      uses: actions/checkout@v4   
     - name: repalce token
       uses: cschleiden/replace-tokens@v1
       with:
         tokenPrefix: '_{_'
         tokenSuffix: '_}_'
-        files: '["kubernetes/"]' 
+        files: '["kubernetes/development/*"]' 
       env: 
         NAMESPACE: ${{vars.NAMESPACE}}
         IMAGE: ${{needs.unit-testing.outputs.IMAGE}}
         REPLICAS: ${{vars.REPLICAS}}
+    -  name: list file 
+       run: 
+        cat kubernete/development/* 
+
 
