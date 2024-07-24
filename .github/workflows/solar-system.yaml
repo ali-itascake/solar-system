@@ -16,6 +16,12 @@ jobs:
     steps: 
     - name: checkout the repo 
       uses: actions/checkout@v4 
+    - name: Cache npm
+      id: cache-npm
+      uses: actions/cache@v4
+      with:
+        path: ~/.npm
+        key: ${{ runner.os }}-node-modules-${{ hashFiles('package-lock.json') }}
     - name: get nodejs package 
       uses: actions/setup-node@v3
       with: 
@@ -23,6 +29,9 @@ jobs:
     - name: install npm dependencies 
       run: npm install 
     - name: run test 
-      run: npm test             
+      run: npm test    
+    - name: archive reports
+      uses: actions/ 
+
 
     
