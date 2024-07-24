@@ -5,33 +5,40 @@ on:
   push: 
     branches: 
     - main
-    - freatures/* 
+    - features/* 
+
 env: 
   MONGO_URI: 'mongodb+srv://supercluster.d83jj.mongodb.net/superData'
-  MONGO_USERNAME: ${{ vars.MONGO_USERNAME}}
+  MONGO_USERNAME: ${{ vars.MONGO_USERNAME }}
   MONGO_PASSWORD: ${{ secrets.MONGO_PASSWORD }}       
+
 jobs: 
   unit-testing: 
     runs-on: ubuntu-latest
     steps: 
-    - name: checkout the repos 
+    - name: Checkout the repository
       uses: actions/checkout@v4 
+      
     - name: Cache npm
       id: cache-npm
       uses: actions/cache@v3
       with:
         path: ~/.npm
         key: ${{ runner.os }}-node-modules-${{ hashFiles('package-lock.json') }}
-    - name: get nodejs package 
+
+    - name: Setup Node.js
       uses: actions/setup-node@v3
       with: 
         node-version: 18 
-    - name: install npm dependencies 
+        
+    - name: Install npm dependencies
       run: npm install 
-    - name: run test 
+      
+    - name: Run tests
       run: npm test    
-    - name: archive reports
-      uses: actions/ 
-
-
-    
+      
+    - name: Archive reports
+      uses: actions/upload-artifact@v3
+      with:
+        name: test-reports
+        path: path/to/your/reports
