@@ -91,9 +91,9 @@ jobs:
     - name: repalce token
       uses: cschleiden/replace-tokens@v1
       with:
-        tokenPrefix: '{'
-        tokenSuffix: '}'
-        files: '["kubernetes/development"]' 
+        tokenPrefix: '_{_'
+        tokenSuffix: '_}_'
+        files: '["kubernetes/"]' 
       env: 
         NAMESPACE: ${{vars.NAMESPACE}}
         IMAGE: ${{needs.unit-testing.outputs.IMAGE}}
