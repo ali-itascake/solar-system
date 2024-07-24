@@ -21,7 +21,7 @@ jobs:
   unit-testing: 
     runs-on: ubuntu-latest
     outputs:
-      IMAGE: ${{steps.login-ecr.outputs.e}}
+      IMAGE: ${{steps.build-and-push.outputs.IMAGE}}
     steps: 
     - name: Checkout the repository
       uses: actions/checkout@v4 
@@ -72,6 +72,7 @@ jobs:
         echo $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TA >> GITHUB.OUTPUT
 
   Deploy-todev: 
+    needs: unit-testing
     runs-on: ubuntu-latest
     environment:
       name: development 
@@ -94,5 +95,6 @@ jobs:
         files: '["kubernetes/development"]' 
       env: 
         NAMESPACE: ${{vars.NAMESPACE}}
-        IMAGE: ${{}}
+        IMAGE: ${{needs.unit-testing.outputs.IMAGE}}
+        REPLICAS: ${{vars.REPLICAS}}
 
