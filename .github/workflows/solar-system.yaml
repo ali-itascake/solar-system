@@ -1,0 +1,46 @@
+name: solar system workflow
+
+on: 
+  workflow_dispatch:   
+  push: 
+    branches: 
+    - main
+    - features/* 
+
+env: 
+  MONGO_URI: 'mongodb+srv://supercluster.d83jj.mongodb.net/superData'
+  MONGO_USERNAME: ${{ vars.MONGO_USERNAME }}
+  MONGO_PASSWORD: ${{ secrets.MONGO_PASSWORD }}       
+
+jobs: 
+  unit-testing: 
+    runs-on: ubuntu-latest
+    steps: 
+    - name: Checkout the repository
+      uses: actions/checkout@v4 
+      
+    - name: Cache npm
+      id: cache-npm
+      uses: actions/cache@v3
+      with:
+        path: ~/.npm
+        key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-module
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with: 
+        node-version: 18 
+        
+    - name: Install npm dependencies
+      run: npm install 
+      
+    - name: Run tests
+      run: npm test    
+      
+    - name: Archive reports
+      uses: actions/upload-artifact@v3
+      with:
+        name: test-reports
+        path: path/to/your/reports
