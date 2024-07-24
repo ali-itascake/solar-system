@@ -75,7 +75,7 @@ jobs:
     needs: unit-testing
     runs-on: ubuntu-latest
     environment:
-      name: development 
+      name: prod 
     steps: 
     - name: install kubectl 
       uses: azure/setup-kubectl@v3
