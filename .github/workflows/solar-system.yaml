@@ -102,6 +102,6 @@ jobs:
         REPLICAS: ${{vars.REPLICAS}}
     -  name: list file 
        run: 
-        cat kubernete/development/* 
+        cat kubernetes/development/* 
 
 
