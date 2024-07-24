@@ -105,10 +105,10 @@ jobs:
         tokenSuffix: '_}_'
         files: '["kubernetes/development/*"]' 
       env: 
-        NAMESPACE: ${{vars.NAMESPACE}}
-        K8S_IMAGE: ${{needs.unit-testing.outputs.ECR_REGISTRY}}/${{env.ECR_REPOSITORY}}:${{env.IMAGE_TAG}} 
-        REPLICAS: ${{vars.REPLICAS}}
-        INGRESS_IP: ${{vars.INGRESS_IP}}
+        NAMESPACE: ${{ vars.NAMESPACE }}
+        K8S_IMAGE: ${{ needs.unit-testing.outputs.ECR_REGISTRY}}/${{env.ECR_REPOSITORY}}:${{env.IMAGE_TAG}} 
+        REPLICAS: ${{ vars.REPLICAS }}
+        INGRESS_IP: ${{ vars.INGRESS_IP }}
     -  name: list file 
        run: 
         cat kubernetes/development/* 
