@@ -3,17 +3,14 @@ name: solar system workflow
 on: 
   workflow_dispatch:   
   push: 
-    branches: 
-    - main
-    - features/* 
-      
 
-env: 
+
+env:
   MONGO_URI: 'mongodb+srv://supercluster.d83jj.mongodb.net/superData'
   MONGO_USERNAME: ${{ vars.MONGO_USERNAME }}
   MONGO_PASSWORD: ${{ secrets.MONGO_PASSWORD }}   
   ECR_REPOSITORY: itascake
-  IMAGE_TAG: ${{ github.sha}}
+  IMAGE_TAG: ${{ github.sha }}
   BRANCH_NAME: ${{ github.ref_name }}
   CUSTOM_TAG:  0.0.1     
 
@@ -21,7 +18,8 @@ jobs:
   unit-testing: 
     runs-on: ubuntu-latest
     outputs:
-      IMAGE: ${{steps.build-and-push.outputs.IMAGE}}
+      IMAGE: ${{ steps.build-and-push.outputs.IMAGE }}
+      
     steps: 
     - name: Checkout the repository
       uses: actions/checkout@v4 
@@ -51,50 +49,62 @@ jobs:
       with:
         name: test-reports
         path: path/to/your/reports
+
     - name: AWS LOGIN 
       uses: aws-actions/configure-aws-credentials@v4
       with:
-         aws-access-key-id : ${{ secrets.AWS_ACCESS_ID}}
-         aws-secret-access-key: ${{ secrets.AWS_ACCESS_KEY}}
-         aws-region: ${{ vars.AWS_REGION}}
+         aws-access-key-id: ${{ secrets.AWS_ACCESS_ID }}
+         aws-secret-access-key: ${{ secrets.AWS_ACCESS_KEY }}
+         aws-region: ${{ vars.AWS_REGION }}
   
     - name: Login to Amazon ECR
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v2
-          
 
     - name: Docker build and push 
       id: build-and-push
+      env: 
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
       run: | 
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
         docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY/nginx:$CUSTOM_TAG
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG 
-        echo $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TA >> GITHUB.OUTPUT
+        echo "IMAGE=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_ENV
+        echo "IMAGE=${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
   Deploy-todev: 
     needs: unit-testing
     runs-on: ubuntu-latest
     environment:
-      name: development 
+      name: prod 
     steps: 
-    - name: install kubectl 
+    - name: Install kubectl 
       uses: azure/setup-kubectl@v3
-      with:
-       version: '1.28' # default is latest stable
-        
-    - name:  set context  
+     
+    - name: Set context  
       uses: azure/k8s-set-context@v4
       with:
        method: kubeconfig
-       kubeconfig: ${{ secrets.KUBE_CONFIG}}  
-    - name: repalce token
+       kubeconfig: ${{ secrets.KUBE_CONFIG }}  
+
+    - name: Checkout the repository
+      uses: actions/checkout@v4   
+
+    - name: Capture LB IP
+      run: |
+        echo "INGRESS_IP=$(kubectl -n ingress-nginx get services ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}')" >> $GITHUB_ENV
+
+    - name: Replace tokens
       uses: cschleiden/replace-tokens@v1
       with:
-        tokenPrefix: '{'
-        tokenSuffix: '}'
-        files: '["kubernetes/development"]' 
+        tokenPrefix: '_{_'
+        tokenSuffix: '_}_'
+        files: '["kubernetes/development/*"]' 
       env: 
-        NAMESPACE: ${{vars.NAMESPACE}}
-        IMAGE: ${{needs.unit-testing.outputs.IMAGE}}
-        REPLICAS: ${{vars.REPLICAS}}
+        NAMESPACE: ${{ vars.NAMESPACE }}
+        K8S_IMAGE: ${{ needs.unit-testing.outputs.IMAGE }}
+        REPLICAS: ${{ vars.REPLICAS }}
+        INGRESS_IP: ${{ env.INGRESS_IP }}
 
+    - name: List files 
+      run: cat kubernetes/development/*
