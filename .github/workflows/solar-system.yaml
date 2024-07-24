@@ -21,7 +21,7 @@ jobs:
   unit-testing: 
     runs-on: ubuntu-latest
     outputs:
-      IMAGE_: ${{steps.build-and-push.outputs.IMAGE_REGISTR}}
+      ECR_REGISTRY: ${{steps.build-and-push.outputs.ECR_REGISTRY}}
       
     steps: 
     - name: Checkout the repository
@@ -106,7 +106,7 @@ jobs:
         files: '["kubernetes/development/*"]' 
       env: 
         NAMESPACE: ${{vars.NAMESPACE}}
-        K8S_IMAGE: ${{needs.unit-testing.outputs.ECR_REGISTRY}}/${{env.IMAGE_REPOSITORY}}:${{env.TAG}} 
+        K8S_IMAGE: ${{needs.unit-testing.outputs.ECR_REGISTRY}}/${{env.ECR_REPOSITORY}}:${{env.IMAGE_TAG}} 
         REPLICAS: ${{vars.REPLICAS}}
         INGRESS_IP: ${{vars.INGRESS_IP}}
     -  name: list file 
