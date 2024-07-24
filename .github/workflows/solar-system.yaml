@@ -71,8 +71,8 @@ jobs:
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
         docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY/nginx:$CUSTOM_TAG
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG 
-        IMAGE=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-        echo $IMAGE >> GITHUB.OUTPUT
+        IMAGE=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG 
+        echo $IMAGE >> "$GITHUB_OUTPUT"
 
   Deploy-todev: 
     needs: unit-testing
@@ -91,6 +91,11 @@ jobs:
        kubeconfig: ${{ secrets.KUBE_CONFIG}}  
     - name: Checkout the repository
       uses: actions/checkout@v4   
+    - name: capture LB ip
+      run: |
+        echo "INGRESS_IP=$(kubectl -n ingress-nginx get services
+        ingress-nginx-controller -o
+        jsonpath='{.status.loadBalancer.ingress[0].ip}')" >> $GITHUB_ENV  
     - name: repalce token
       uses: cschleiden/replace-tokens@v1
       with:
@@ -101,8 +106,10 @@ jobs:
         NAMESPACE: ${{vars.NAMESPACE}}
         K8S_IMAGE: ${{needs.unit-testing.outputs.IMAGE}}
         REPLICAS: ${{vars.REPLICAS}}
+        INGRESS_IP: ${{vars.INGRESS_IP}}
     -  name: list file 
        run: 
         cat kubernetes/development/* 
+        
 
 
