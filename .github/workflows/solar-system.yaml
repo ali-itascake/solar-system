@@ -6,15 +6,22 @@ on:
     branches: 
     - main
     - features/* 
+      
 
 env: 
   MONGO_URI: 'mongodb+srv://supercluster.d83jj.mongodb.net/superData'
   MONGO_USERNAME: ${{ vars.MONGO_USERNAME }}
-  MONGO_PASSWORD: ${{ secrets.MONGO_PASSWORD }}       
+  MONGO_PASSWORD: ${{ secrets.MONGO_PASSWORD }}   
+  ECR_REPOSITORY: itascake
+  IMAGE_TAG: ${{ github.sha}}
+  BRANCH_NAME: ${{ github.ref_name }}
+  CUSTOM_TAG:  0.0.1     
 
 jobs: 
   unit-testing: 
     runs-on: ubuntu-latest
+    outputs:
+      IMAGE: ${{steps.login-ecr.outputs.e}}
     steps: 
     - name: Checkout the repository
       uses: actions/checkout@v4 
@@ -44,3 +51,48 @@ jobs:
       with:
         name: test-reports
         path: path/to/your/reports
+    - name: AWS LOGIN 
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+         aws-access-key-id : ${{ secrets.AWS_ACCESS_ID}}
+         aws-secret-access-key: ${{ secrets.AWS_ACCESS_KEY}}
+         aws-region: ${{ vars.AWS_REGION}}
+  
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v2
+          
+
+    - name: Docker build and push 
+      id: build-and-push
+      run: | 
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+        docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY/nginx:$CUSTOM_TAG
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG 
+        echo $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TA >> GITHUB.OUTPUT
+
+  Deploy-todev: 
+    runs-on: ubuntu-latest
+    environment:
+      name: development 
+    steps: 
+    - name: install kubectl 
+      uses: azure/setup-kubectl@v3
+      with:
+       version: '1.28' # default is latest stable
+        
+    - name:  set context  
+      uses: azure/k8s-set-context@v4
+      with:
+       method: kubeconfig
+       kubeconfig: ${{ secrets.KUBE_CONFIG}}  
+    - name: repalce token
+      uses: cschleiden/replace-tokens@v1
+      with:
+        tokenPrefix: '{'
+        tokenSuffix: '}'
+        files: '["kubernetes/development"]' 
+      env: 
+        NAMESPACE: ${{vars.NAMESPACE}}
+        IMAGE: ${{}}
+
