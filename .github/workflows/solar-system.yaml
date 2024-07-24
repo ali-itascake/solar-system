@@ -82,7 +82,7 @@ jobs:
     - name: install kubectl 
       uses: azure/setup-kubectl@v3
       with:
-       version: '1.28' # default is latest stable
+       version: '1.28.0' # default is latest stable
         
     - name:  set context  
       uses: azure/k8s-set-context@v4
