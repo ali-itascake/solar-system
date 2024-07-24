@@ -73,7 +73,7 @@ jobs:
         docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY/nginx:$CUSTOM_TAG
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG 
         IMAGE=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG 
-        echo  $ECR_REGISTRY >> "$GITHUB_OUTPUT"
+        echo  "$ECR_REGISTRY" >> "$GITHUB_OUTPUT"
       
 
   Deploy-todev: 
