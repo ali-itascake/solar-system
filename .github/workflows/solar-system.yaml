@@ -98,7 +98,7 @@ jobs:
         files: '["kubernetes/development/*"]' 
       env: 
         NAMESPACE: ${{vars.NAMESPACE}}
-        IMAGE: ${{needs.unit-testing.outputs.IMAGE}}
+        K8S_IMAGE: ${{needs.unit-testing.outputs.IMAGE}}
         REPLICAS: ${{vars.REPLICAS}}
     -  name: list file 
        run: 
